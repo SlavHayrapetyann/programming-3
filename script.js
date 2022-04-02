@@ -1,116 +1,93 @@
-function generator(matY, matX, matNum) {
-    matrix = [];  
-    for (let y = 0; y < matY; y++) {
-        matrix[y] = [];
-        for (let x = 0; x < matX; x++) {
-            matrix[y][x] = 0;
-        }
-    }
-    for (let i = 0; i < matrix.length; i++) {
-        for (let j = 0; j < matrix[i].length; j++) {
-            for (let z = 0; z < matY; z++) {
-                let num1 = Math.round(Math.random() * (matY * matNum));
-                if (num1 == 0) {
-                    let num = Math.round(Math.random() * matNum);
-                    if (matrix[i][j] == 0) {
-                        matrix[i][j] = num;
-                    }         
-                }
-            } 
-        }
-    }
-}
 
-let side = 10;
-
+//! Setup function fires automatically
+var socket = io();
 function setup() {
-    // frameRate(5);
-    createCanvas(500,500);
-    generator(50, 50, 4);
-    background('gray');
+    var weath = 'winter'
 
+    var side = 10;
 
-    for (var y = 0; y < matrix.length; y++) {
-        for (var x = 0; x < matrix[y].length; x++) {
-            if (matrix[y][x] == 1) {
-                matrix[y][x] = new Grass(x, y, 1);
-            }
-            else if (matrix[y][x] == 2) {
-                matrix[y][x] = new GrassEater(x, y, 2);
-            }
-            else if (matrix[y][x] == 3) {
-                matrix[y][x] = new AllEater(x, y, 3)
-            }
-            else if (matrix[y][x] == 4){
-                matrix[y][x] = new Bomb(x, y, 4)
-            }
-            else if (matrix[y][x] == 6){
-                matrix[y][x] = new BombBlow(x, y, 6)
-            }
-            else if (matrix[y][x] == 5){
-                matrix[y][x] = new Coronavirus(x, y, 5)
+    var matrix = [];
+
+    //! Getting DOM objects (HTML elements)
+    let grassCountElement = document.getElementById('grassCount');
+    let grassEaterCountElement = document.getElementById('grassEaterCount');
+    let AllEaterCountElement = document.getElementById('AllEaterCount');
+    let CoronavirusCountElement = document.getElementById('CoronavirusCount');
+    let BombCountElement = document.getElementById('BombCount');
+    let BombBlowCountElement = document.getElementById('BombBlowCount');
+
+    //! adding socket listener on "data" <-- name, after that fire 'drawCreatures' function 
+
+    socket.on("data", drawCreatures);
+    socket.on("weather", function (data)
+    {
+        weath = data;
+    })
+    function drawCreatures(data) {
+        //! after getting data pass it to matrix variable
+        matrix = data.matrix;
+        grassCountElement.innerText = data.grassCounter;
+        grassEaterCountElement.innerText = data.grassEaterCounter;
+        AllEaterCountElement.innerText = data.AllEaterCounter;
+        CoronavirusCountElement.innerText = data.CoronavirusCounter;
+        BombCountElement.innerText = data.BombCounter;
+        BombBlowCountElement.innerText = data.BombBlowCounter;
+        //! Every time it creates new Canvas woth new matrix size
+        createCanvas(matrix[0].length * side, matrix.length * side)
+        //! clearing background by setting it to new grey color
+        background('#acacac');
+        //! Draw grassCount and grassEaterCount to HTML (use DOM objects to update information, yes, and use .innerText <- function)
+
+        //! Drawing and coloring RECTs
+        for (var i = 0; i < matrix.length; i++) {
+            for (var j = 0; j < matrix[i].length; j++) {
+                if (matrix[i][j] == 1) {
+                        if(weath == "spring")
+                        {
+                            fill("green")
+                        }
+                        else if(weath == "summer")
+                        {
+                            fill("black");
+                        }
+                        else if(weath == "winter")
+                        {
+                            fill("white")
+                        }
+                        else if(weath == "autumn")
+                        {
+                            fill("#4dffa6")
+                        }
+                        rect(j * side, i * side, side, side);
+                } 
+                else if (matrix[i][j] == 0) {
+                    fill("#acacac");
+                    rect(j * side, i * side, side, side);               
+                }
+                else if (matrix[i][j] == 2) {
+                    fill("yellow");
+                    rect(j * side, i * side, side, side);               
+                }
+                else if (matrix[i][j] == 3) {
+                    fill("red");
+                    rect(j * side, i * side, side, side);
+                }
+                else if (matrix[i][j] == 4) {
+                    fill("blue");
+                    rect(j * side, i * side, side, side);
+                }
+                else if (matrix[i][j] == 5) {
+                    fill(148, 0, 211);
+                    rect(j * side, i * side, side, side);
+                }
+                else if (matrix[i][j] == 6) {
+                    fill(173,216,230);
+                    rect(j * side, i * side, side, side);
+                }
             }
         }
     }
 }
-
-
-function draw() {
-
-    for (var y = 0; y < matrix.length; y++) {
-        for (var x = 0; x < matrix[y].length; x++) {
-            var obj = matrix[y][x];
-
-            if (obj.index == 1) {
-                obj.mul();
-            }
-            else if (obj.index == 2) {
-                obj.eat();
-            }
-            else if (obj.index == 3) {
-                obj.eat();
-            }
-            else if (obj.index == 4) {
-                obj.move();
-            }
-            else if (obj.index == 6) {
-                obj.energya();
-            }
-            else if (obj.index == 5) {
-                obj.infect();
-            }
-        }
-    }
-    background("gray");
-    for (var y = 0; y < matrix.length; y++) {
-        for (var x = 0; x < matrix[y].length; x++) {
-            var obj = matrix[y][x];
-
-            if (obj.index == 1) {
-                fill("green");
-                rect(x * side, y * side, side, side);
-                
-            }
-            else if (obj.index == 2) {
-                fill("yellow");
-                rect(x * side, y * side, side, side);               
-            }
-            else if (obj.index == 3) {
-                fill("red");
-                rect(x * side, y * side, side, side);
-            }
-            else if (obj.index == 4) {
-                fill("blue");
-                rect(x * side, y * side, side, side);
-            }
-            else if (obj.index == 5) {
-                fill(148, 0, 211);
-                rect(x * side, y * side, side, side);
-            }
-            else if (obj.index == 6) {
-                fill(173,216,230);
-                rect(x * side, y * side, side, side);
-            }
-        }
-    }
+function kill() {
+    socket.emit("kill")
 }
